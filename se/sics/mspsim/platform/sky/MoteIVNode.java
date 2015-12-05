@@ -2,7 +2,9 @@ package se.sics.mspsim.platform.sky;
 import se.sics.mspsim.chip.Button;
 import se.sics.mspsim.chip.Leds;
 import se.sics.mspsim.chip.SHT11;
+import se.sics.mspsim.chip.WiredMon;
 import se.sics.mspsim.core.IOPort;
+import se.sics.mspsim.mon.StdMon;
 
 public abstract class MoteIVNode extends CC2420Node {
 
@@ -11,14 +13,19 @@ public abstract class MoteIVNode extends CC2420Node {
   public static final int MODE_LEDS_2 = 2;
   public static final int MODE_LEDS_3 = 3;
   public static final int MODE_MAX = MODE_LEDS_3;
+
   // Port 2.
   public static final int BUTTON_PIN = 7;
 
+  // Port 1.
   public static final int SHT11_CLK_PIN = 6;
   public static final int SHT11_DATA_PIN = 5;
 
   public static final int SHT11_CLK = 1 << SHT11_CLK_PIN;
   public static final int SHT11_DATA = 1 << SHT11_DATA_PIN;
+
+  public static final int MON_CLK  = 1 << 1;
+  public static final int MON_DATA = 1 << 2;
 
   private static final int[] LEDS = { 0xff2020, 0x40ff40, 0x4040ff };
   public static final int BLUE_LED = 0x40;
@@ -31,6 +38,7 @@ public abstract class MoteIVNode extends CC2420Node {
 
   private Leds leds;
   private Button button;
+  private WiredMon wiredMon;
   public SHT11 sht11;
 
   public SkyGui gui;
@@ -46,7 +54,7 @@ public abstract class MoteIVNode extends CC2420Node {
 
   public Button getButton() {
       return button;
-  } 
+  }
 
   @Deprecated
   public void setButton(boolean buttonPressed) {
@@ -60,6 +68,8 @@ public abstract class MoteIVNode extends CC2420Node {
     button = new Button("Button", cpu, port2, BUTTON_PIN, true);
     sht11 = new SHT11(cpu);
     sht11.setDataPort(port1, SHT11_DATA_PIN);
+
+    wiredMon = new WiredMon("WMON", "wired-mon", cpu, new StdMon());
   }
 
   public void setupGUI() {
@@ -82,9 +92,12 @@ public abstract class MoteIVNode extends CC2420Node {
     } else if (source == port1) {
       sht11.clockPin((data & SHT11_CLK) != 0);
       sht11.dataPin((data & SHT11_DATA) != 0);
+
+      wiredMon.clockPin((data & MON_CLK) != 0);
+      wiredMon.dataPin((data & MON_DATA) != 0);
     }
   }
-  
+
   public int getModeMax() {
     return MODE_MAX;
   }
