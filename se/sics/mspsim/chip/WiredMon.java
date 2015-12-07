@@ -44,6 +44,7 @@ package se.sics.mspsim.chip;
 import se.sics.mspsim.core.Chip;
 import se.sics.mspsim.core.MSP430Core;
 import se.sics.mspsim.mon.MonBackend;
+import se.sics.mspsim.mon.MonTimestamp;
 
 /**
  Message format:
@@ -54,7 +55,7 @@ import se.sics.mspsim.mon.MonBackend;
  Special state -1 (0xffff) signal extra info.
 */
 public class WiredMon extends Chip {
-  public enum WiredMonState {
+  private enum WiredMonState {
     CONTEXT,
     ENTITY,
     STATE,
@@ -170,12 +171,13 @@ public class WiredMon extends Chip {
   }
 
   private void record() {
+    MonTimestamp timestamp = new MonTimestamp(cpu.cycles, cpu.getTimeMillis());
+
     if(info == null)
-      backend.recordState(context, entity, state,
-                          cpu.cycles, cpu.getTimeMillis());
+      backend.state(context, entity, state, timestamp);
     else
-      backend.recordInfo(context, entity, info,
-                         cpu.cycles, cpu.getTimeMillis());
+      backend.info(context, entity, info, timestamp);
+
     reset();
   }
 

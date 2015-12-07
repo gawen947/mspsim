@@ -43,6 +43,7 @@
 package se.sics.mspsim.core;
 
 import se.sics.mspsim.mon.MonBackend;
+import se.sics.mspsim.mon.MonTimestamp;
 
 public class RegMon extends IOUnit {
   public static final int MONCTX = 0x1C0; /* context */
@@ -100,8 +101,8 @@ public class RegMon extends IOUnit {
 
   private void recordState() {
     /* sti is state */
-    backend.recordState(ctx, ent, sti,
-                        cpu.cycles, cpu.getTimeMillis());
+    backend.state(ctx, ent, sti,
+                  new MonTimestamp(cpu.cycles, cpu.getTimeMillis()));
   }
 
   private void recordInfo() {
@@ -113,8 +114,8 @@ public class RegMon extends IOUnit {
          great for us. */
       info[i] = (byte)cpu.memory[sti + i];
 
-    backend.recordInfo(ctx, ent, info,
-                       cpu.cycles, cpu.getTimeMillis());
+    backend.info(ctx, ent, info,
+                 new MonTimestamp(cpu.cycles, cpu.getTimeMillis()));
   }
 }
 

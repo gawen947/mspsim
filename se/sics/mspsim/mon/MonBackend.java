@@ -41,11 +41,212 @@
 
 package se.sics.mspsim.mon;
 
-public abstract class MonBackend {
-  public abstract void recordState(int context, int entity, int state,
-                                   long cycles, double timeMillis);
+import java.nio.ByteOrder;
 
-  public abstract void recordInfo(int context, int entity, byte[] info,
-                                  long cycles, double timeMillis);
+public abstract class MonBackend {
+  /* The monitor has to be initialized with
+     the source endianness and the duration
+     of monitor functions (record/info). */
+  private enum MonInitState {
+    ENDIAN,          /* check up byte order */
+    RECORD_OFFSET,   /* record duration */
+    INFO_FETCH,      /* fetch info pointer */
+    INFO_U8_OFFSET,  /* info with one byte buffer */
+    INFO_U16_OFFSET, /* info with two bytes buffer */
+    INITIATED,       /* monitor initiated */
+    DISABLED         /* error occured during initialisation */
+  }
+
+  /* MON_CT_CONTROL and MON_ENT_CAL values of zero
+     ensure that there are always the same in any
+     endianness, so the endianness messages is always
+     understood. */
+  private static final int MON_CT_CONTROL = 0;
+  private static final int MON_ENT_CAL    = 0;
+  private static final int MON_ST_CHECK   = 0xaabb;
+
+  private MonInitState initState = MonInitState.ENDIAN;
+  private ByteOrder    byteOrder;
+  private MonTimestamp last;
+
+  private MonTimestamp recordOffset;
+  private MonTimestamp infoOffsetU8;
+  private MonTimestamp infoOffset;
+  private MonTimestamp byteOffset;
+
+  /** Return the duration of a record (state) message. */
+  protected MonTimestamp getRecordOffset() {
+    /* these are errors instead of exception because
+       the backend must not access them if the protocol
+       has not been initialized properly. */
+    if(initState != MonInitState.INITIATED)
+      throw new MonError("protocol not initiated");
+    return recordOffset;
+  }
+
+  /** Return the duration of an info message with a zero bytes buffer. */
+  protected MonTimestamp getInfoOffset() {
+    if(initState != MonInitState.INITIATED)
+      throw new MonError("protocol not initiated");
+    return infoOffset;
+  }
+
+  /** Return the processing duration of one byte in the info message buffer. */
+  protected MonTimestamp getByteOffset() {
+    if(initState != MonInitState.INITIATED)
+      throw new MonError("protocol not initiated");
+    return byteOffset;
+  }
+
+  /** Get the byte order in which messages are given to the backend.
+      Since the backend does not try to understand info messages, it
+      should only store the endianness. It is up to the extracting
+      tool to display data in the correct endiannes. */
+  protected ByteOrder getEndian() {
+    if(initState != MonInitState.INITIATED)
+      throw new MonError("protocol not initiated");
+    return byteOrder;
+  }
+
+  public void state(int context, int entity, int state, MonTimestamp timestamp) {
+    switch(initState) {
+    case ENDIAN:
+      /* If the source was already in network order,
+         we don't need to change anything. Unlikely
+         though because we know its an MSP430. */
+      if(state == htons(MonBackend.MON_ST_CHECK))
+        byteOrder = ByteOrder.BIG_ENDIAN;
+      else
+        byteOrder = ByteOrder.LITTLE_ENDIAN;
+
+      last = timestamp;
+
+      initState  = MonInitState.RECORD_OFFSET;
+      break;
+    case RECORD_OFFSET:
+      /* Messages are sent consecutively. Since we
+         recorded the time of the last message, we
+         can now compute the duration of one record
+         message. */
+      recordOffset = last.diff(timestamp);
+
+      initState = MonInitState.INFO_FETCH;
+      break;
+    case INFO_FETCH:
+    case INFO_U8_OFFSET:
+    case INFO_U16_OFFSET:
+      /* we should not get here, this is an error */
+      error("unexpected state");
+      initState = MonInitState.DISABLED;
+      break;
+    case INITIATED:
+      /* The protocol has been initiated so we
+         just transmit the message to the backend
+         implementation. */
+      recordState(context, entity, state, timestamp);
+      break;
+    case DISABLED:
+      /* an error occured */
+      return;
+    }
+  }
+
+  public void info(int context, int entity, byte[] info, MonTimestamp timestamp) {
+    switch(initState) {
+    case ENDIAN:
+    case RECORD_OFFSET:
+      /* we should not get here, this is an error */
+      error("unexpected state");
+      initState = MonInitState.DISABLED;
+      break;
+    case INFO_FETCH:
+      last = timestamp;
+
+      initState = MonInitState.INFO_U8_OFFSET;
+      break;
+    case INFO_U8_OFFSET:
+      /* We received an info message with a one
+         byte info buffer. We can compute its
+         duration. */
+      infoOffsetU8 = last.diff(timestamp);
+      last         = timestamp;
+
+      initState = MonInitState.INFO_U16_OFFSET;
+      break;
+    case INFO_U16_OFFSET:
+      /* Now we received a buffer with a different
+         length, so we can compute the offset per
+         byte and compute the real info offset. */
+      MonTimestamp infoOffsetU16 = last.diff(timestamp);
+      byteOffset = infoOffsetU16.diff(infoOffsetU8);
+      infoOffset = infoOffsetU8.diff(byteOffset);
+
+      /* free ref */
+      last         = null;
+      infoOffsetU8 = null;
+
+      initState = MonInitState.INITIATED;
+      initiated();
+      break;
+    case INITIATED:
+      /* The protocol has been initiated so we
+         just transmit the message to the backend
+         implementation. */
+      recordInfo(context, entity, info, timestamp);
+      break;
+    case DISABLED:
+      /* an error occured */
+      return;
+    }
+  }
+
+  /** Record an event into the backend. */
+  protected abstract void recordState(int context, int entity, int state,
+                                      MonTimestamp timestamp);
+
+  /** Record information about an entity into the backend. */
+  protected abstract void recordInfo(int context, int entity, byte[] info,
+                                     MonTimestamp timestamp);
+
+  /** Signal that the monitor protocol has been intiated.
+      Offsets and endianness should be accessible. */
+  protected abstract void initiated();
+
+  /** Convert a short to network byte order. */
+  protected static int htons(int value) {
+    /* network order is in big endian */
+    if(ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN)
+      return value;
+    else
+      return reverseU16(value);
+  }
+
+  /** Convert a short from source to host byte order. */
+  protected int xtohs(int value) {
+    if(initState != MonInitState.INITIATED)
+      throw new MonError("protocol not initiated");
+
+    if(ByteOrder.nativeOrder() == byteOrder)
+      return value;
+    else
+      return reverseU16(value);
+  }
+
+  private static int reverseU16(int value) {
+    return ((value << 8) | (value >> 8)) & 0xffff;
+  }
+
+  protected MonTimestamp reduceRecordOffset(MonTimestamp timestamp) {
+    return timestamp.reduce(recordOffset);
+  }
+
+  protected MonTimestamp reduceInfoOffset(MonTimestamp timestamp, int bufferLen) {
+    timestamp = timestamp.reduce(infoOffset);
+    return timestamp.reduce(byteOffset, bufferLen);
+  }
+
+  private void error(String message) {
+    System.out.printf("(mon) error: %s\n", message);
+  }
 }
 

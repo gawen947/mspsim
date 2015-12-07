@@ -41,32 +41,53 @@
 
 package se.sics.mspsim.mon;
 
+import java.nio.ByteOrder;
+
 public class StdMon extends MonBackend {
-  private int swapb(int u16) { /* ntohs */
-    return ((u16 << 8 | u16 >> 8) & 0xffff);
+  public void initiated() {
+    MonTimestamp recordOffset = getRecordOffset();
+    MonTimestamp infoOffset   = getInfoOffset();
+    MonTimestamp byteOffset   = getByteOffset();
+
+    System.out.println("(mon) initiated!");
+    System.out.printf("(mon) endianness: %s\n",
+                      getEndian() == ByteOrder.LITTLE_ENDIAN ? "LE"
+                                                             : "BE");
+    System.out.printf("(mon) record offset: %d cycles, %.3fus\n", recordOffset.getCycles(), recordOffset.getMillis() * 1000.);
+    System.out.printf("(mon) info offset  : %d cycles, %.3fus\n", infoOffset.getCycles(), infoOffset.getMillis() * 1000.);
+    System.out.printf("(mon) byte offset  : %d cycles, %.3fus\n", byteOffset.getCycles(), byteOffset.getMillis() * 1000.);
   }
 
   public void recordState(int context, int entity, int state,
-                          long cycles, double timeMillis) {
-    System.out.printf("(mon) @%d %fms RECORD %d %d %d\n", cycles, timeMillis, swapb(context), swapb(entity), swapb(state));
+                          MonTimestamp timestamp) {
+    /* Since we display directly on stdout we must take care of endianness and offset. */
+    context = xtohs(context);
+    entity  = xtohs(entity);
+    state   = xtohs(state);
+
+    timestamp = reduceRecordOffset(timestamp);
+
+    System.out.printf("(mon) @%d %fms RECORD %d %d %d\n",
+                      timestamp.getCycles(), timestamp.getMillis(),
+                      context, entity, state);
   }
 
   public void recordInfo(int context, int entity, byte[] info,
-                         long cycles, double timeMillis) {
-    System.out.printf("(mon) @%d %fms INFO %d %d [", cycles, timeMillis, swapb(context), swapb(entity));
+                         MonTimestamp timestamp) {
+    /* Since we display directly on stdout we must take care of endianness and offset. */
+    context = xtohs(context);
+    entity  = xtohs(entity);
+
+    timestamp = reduceInfoOffset(timestamp, info.length);
+
+    System.out.printf("(mon) @%d %fms INFO %d %d [",
+                      timestamp.getCycles(), timestamp.getMillis(),
+                      context, entity);
+
+    /* though the info buffer is not converted */
     for(byte b : info)
       System.out.printf("%02x", b);
     System.out.printf("]\n");
   }
 }
-
-
-
-
-
-
-
-
-
-
 
