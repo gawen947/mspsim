@@ -52,7 +52,7 @@ public class StdMon extends MonBackend {
     System.out.println("(mon) initiated!");
     System.out.printf("(mon) endianness: %s\n",
                       getEndian() == ByteOrder.LITTLE_ENDIAN ? "LE"
-                                                             : "BE");
+                                                                : "BE");
     System.out.printf("(mon) record offset: %d cycles, %.3fus\n", recordOffset.getCycles(), recordOffset.getMillis() * 1000.);
     System.out.printf("(mon) info offset  : %d cycles, %.3fus\n", infoOffset.getCycles(), infoOffset.getMillis() * 1000.);
     System.out.printf("(mon) byte offset  : %d cycles, %.3fus\n", byteOffset.getCycles(), byteOffset.getMillis() * 1000.);
@@ -88,6 +88,10 @@ public class StdMon extends MonBackend {
     for(byte b : info)
       System.out.printf("%02x", b);
     System.out.printf("]\n");
+  }
+  
+  public void close() {
+    System.out.println("(mon) close!");
   }
 }
 

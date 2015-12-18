@@ -31,67 +31,20 @@
  *
  * -----------------------------------------------------------------
  *
- * Monitor event timestamp information.
- * Can also be used to record a duration and manage offsets.
+ * Discard events, no output at all.
  *
  * Author  : David Hauweele
- * Created : Dec 7 2015
+ * Created : Dec 18 2015
  * Updated : $Date:  $
  *           $Revision: $
  */
 
+
 package se.sics.mspsim.mon;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-public class MonTimestamp {
-  private long   c;
-  private double ms;
-
-  public MonTimestamp(long cycles, double timeMillis) {
-    c  = cycles;
-    ms = timeMillis;
-  }
-
-  public long getCycles() {
-    return c;
-  }
-
-  public double getMillis() {
-    return ms;
-  }
-  
-  public byte[] toBytes(ByteOrder byteOrder) {
-    ByteBuffer buf = ByteBuffer.allocate((Long.SIZE + Double.SIZE) >> 3);
-    buf.order(byteOrder);
-    
-    buf.putLong(getCycles());
-    buf.putDouble(getMillis());
-    
-    return buf.array();
-  }
-
-  public MonTimestamp diff(MonTimestamp mon) {
-    return new MonTimestamp(Math.abs(mon.getCycles() - c),
-                            Math.abs(mon.getMillis() - ms));
-  }
-
-  public MonTimestamp reduce(MonTimestamp offset, int times) {
-    return new MonTimestamp(c  - times * offset.getCycles(),
-                            ms - times * offset.getMillis());
-  }
-
-  public MonTimestamp reduce(MonTimestamp offset) {
-    return reduce(offset, 1);
-  }
+public class NullMon extends MonBackend {
+  protected void recordState(int context, int entity, int state, MonTimestamp timestamp) {}
+  protected void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp) {}
+  protected void initiated() {}
+  public void close() {}
 }
-
-
-
-
-
-
-
-
-

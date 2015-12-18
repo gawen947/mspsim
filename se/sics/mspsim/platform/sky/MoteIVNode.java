@@ -4,7 +4,7 @@ import se.sics.mspsim.chip.Leds;
 import se.sics.mspsim.chip.SHT11;
 import se.sics.mspsim.chip.WiredMon;
 import se.sics.mspsim.core.IOPort;
-import se.sics.mspsim.mon.StdMon;
+import se.sics.mspsim.mon.FileMon;
 
 public abstract class MoteIVNode extends CC2420Node {
 
@@ -69,7 +69,7 @@ public abstract class MoteIVNode extends CC2420Node {
     sht11 = new SHT11(cpu);
     sht11.setDataPort(port1, SHT11_DATA_PIN);
 
-    wiredMon = new WiredMon("WMON", "wired-mon", cpu, new StdMon());
+    wiredMon = new WiredMon("WMON", "wired-mon", cpu, new FileMon("wiredmon.mon"));
   }
 
   public void setupGUI() {
@@ -101,5 +101,4 @@ public abstract class MoteIVNode extends CC2420Node {
   public int getModeMax() {
     return MODE_MAX;
   }
-
 }

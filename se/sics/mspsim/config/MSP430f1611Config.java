@@ -49,6 +49,7 @@ import se.sics.mspsim.core.Timer;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.RegMon;
 import se.sics.mspsim.mon.StdMon;
+import se.sics.mspsim.mon.FileMon;
 
 public class MSP430f1611Config extends MSP430Config {
 
@@ -117,7 +118,7 @@ public class MSP430f1611Config extends MSP430Config {
         cpu.setIORange(0x150, 16, adc12);
         cpu.setIORange(0x1a0, 10, adc12);
 
-        RegMon regMon = new RegMon(cpu, new StdMon());
+        RegMon regMon = new RegMon(cpu, new FileMon("regmon.mon"));
         ioUnits.add(regMon);
         cpu.setIORange(0x1c0, 8, regMon);
 

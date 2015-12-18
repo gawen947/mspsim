@@ -248,5 +248,7 @@ public abstract class MonBackend {
   private void error(String message) {
     System.out.printf("(mon) error: %s\n", message);
   }
+  
+  public abstract void close();
 }
 
