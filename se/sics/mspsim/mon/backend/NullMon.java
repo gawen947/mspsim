@@ -40,7 +40,9 @@
  */
 
 
-package se.sics.mspsim.mon;
+package se.sics.mspsim.mon.backend;
+
+import se.sics.mspsim.mon.MonTimestamp;
 
 public class NullMon extends MonBackend {
   protected void recordState(int context, int entity, int state, MonTimestamp timestamp) {}

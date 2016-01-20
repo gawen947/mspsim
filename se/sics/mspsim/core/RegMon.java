@@ -42,7 +42,7 @@
 
 package se.sics.mspsim.core;
 
-import se.sics.mspsim.mon.MonBackend;
+import se.sics.mspsim.mon.backend.MonBackend;
 import se.sics.mspsim.mon.MonTimestamp;
 
 public class RegMon extends IOUnit {

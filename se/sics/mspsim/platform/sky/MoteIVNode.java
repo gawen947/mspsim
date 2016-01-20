@@ -4,7 +4,7 @@ import se.sics.mspsim.chip.Leds;
 import se.sics.mspsim.chip.SHT11;
 import se.sics.mspsim.chip.WiredMon;
 import se.sics.mspsim.core.IOPort;
-import se.sics.mspsim.mon.FileMon;
+import se.sics.mspsim.mon.backend.FileMon;
 
 public abstract class MoteIVNode extends CC2420Node {
 

@@ -39,7 +39,7 @@
  *           $Revision: $
  */
 
-package se.sics.mspsim.mon;
+package se.sics.mspsim.mon.backend;
 
 
 import java.io.BufferedOutputStream;
@@ -48,6 +48,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import se.sics.mspsim.mon.MonTimestamp;
 
 public class FileMon extends MonBackend { 
   public static final int MAGIK = 0x63746b6d; /* 'ctkm' */

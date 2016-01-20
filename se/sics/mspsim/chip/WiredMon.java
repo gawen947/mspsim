@@ -43,7 +43,7 @@ package se.sics.mspsim.chip;
 
 import se.sics.mspsim.core.Chip;
 import se.sics.mspsim.core.MSP430Core;
-import se.sics.mspsim.mon.MonBackend;
+import se.sics.mspsim.mon.backend.MonBackend;
 import se.sics.mspsim.mon.MonTimestamp;
 
 /**

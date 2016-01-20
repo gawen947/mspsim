@@ -39,9 +39,11 @@
  *           $Revision: $
  */
 
-package se.sics.mspsim.mon;
+package se.sics.mspsim.mon.backend;
 
 import java.nio.ByteOrder;
+
+import se.sics.mspsim.mon.MonTimestamp;
 
 public class StdMon extends MonBackend {
   public void initiated() {

@@ -39,9 +39,12 @@
  *           $Revision: $
  */
 
-package se.sics.mspsim.mon;
+package se.sics.mspsim.mon.backend;
 
 import java.nio.ByteOrder;
+
+import se.sics.mspsim.mon.MonError;
+import se.sics.mspsim.mon.MonTimestamp;
 
 public abstract class MonBackend {
   /* The monitor has to be initialized with

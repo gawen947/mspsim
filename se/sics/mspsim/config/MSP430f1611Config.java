@@ -48,8 +48,8 @@ import se.sics.mspsim.core.Multiplier;
 import se.sics.mspsim.core.Timer;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.RegMon;
-import se.sics.mspsim.mon.StdMon;
-import se.sics.mspsim.mon.FileMon;
+import se.sics.mspsim.mon.backend.StdMon;
+import se.sics.mspsim.mon.backend.FileMon;
 
 public class MSP430f1611Config extends MSP430Config {
 
