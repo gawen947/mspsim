@@ -82,7 +82,7 @@ public class FileMon extends MonBackend {
     return buf.array();
   }
   
-  public void initiated() {
+  protected void initiated() {
     try {
       out = new BufferedOutputStream(new FileOutputStream(path));
     } catch(IOException e) {
