@@ -51,7 +51,7 @@ public abstract class SwitchableMon extends MonBackend {
   private MonTimestamp infoOffset   = null;
   private MonTimestamp byteOffset   = null;
   
-  protected SwitchableBackend backend = null;
+  private SwitchableBackend backend = null;
   
   protected void initiated() {
     recordOffset = getRecordOffset();
@@ -67,6 +67,7 @@ public abstract class SwitchableMon extends MonBackend {
     this.backend = backend;
     
     backend.init(recordOffset, infoOffset, byteOffset, getEndian());
+    initBackend(backend);
   }
   
   public void recordState(int context, int entity, int state, MonTimestamp timestamp) {
@@ -86,6 +87,8 @@ public abstract class SwitchableMon extends MonBackend {
   public void close() {
     if(this.backend != null) {
       this.backend.destroy();
+      destroyBackend(this.backend);
+      
       this.backend = null;
     }
   }
@@ -93,5 +96,6 @@ public abstract class SwitchableMon extends MonBackend {
   /* subclasses must override this to provide their own implementation for skipped events. */
   protected abstract void skipState(int context, int entity, int state, MonTimestamp timestamp);
   protected abstract void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp);
+  protected abstract void initBackend(SwitchableBackend backend);
+  protected abstract void destroyBackend(SwitchableBackend backend);
 }
-

@@ -31,31 +31,71 @@
  *
  * -----------------------------------------------------------------
  *
- * Warns when an event is skipped because no backend has been configured.
+ * Represent an event. We use this to bufferize events in some backends.
  *
  * Author  : David Hauweele
- * Created : Jan 20 2016
- * Updated : $Date:  $
+ * Created : Jan 21 2016
+ * Updated : $Date: $
  *           $Revision: $
  */
 
-package se.sics.mspsim.mon.backend;
+package se.sics.mspsim.mon;
 
-import se.sics.mspsim.mon.MonTimestamp;
-import se.sics.mspsim.mon.switchable.SwitchableBackend;
-
-public class WarnSkipMon extends SwitchableMon {
-  @Override
-  protected void skipState(int context, int entity, int state, MonTimestamp timestamp) {
-    System.out.println(String.format("(mon) warning: state event skipped at %f ms (%l cycles)", timestamp.getMillis(), timestamp.getCycles()));
+public class MonEvent {
+  public enum Type {
+    STATE,
+    INFO
   }
-  @Override
-  protected void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp) {
-    System.out.println(String.format("(mon) warning: info event skipped at %f ms (%l cycles)", timestamp.getMillis(), timestamp.getCycles()));
+  
+  private final int context;
+  private final int entity;
+  private final int state;
+  private final byte[] info;
+  
+  private final MonTimestamp timestamp;
+  
+  public MonEvent(int context, int entity, int state, MonTimestamp timestamp) {
+    this.context = context;
+    this.entity  = entity;
+    this.state   = state;
+    this.info    = null;
+    
+    this.timestamp = timestamp;
   }
-  @Override
-  protected void initBackend(SwitchableBackend backend) {}
-  @Override
-  protected void destroyBackend(SwitchableBackend backend) {}
+  
+  public MonEvent(int context, int entity, byte[] info, MonTimestamp timestamp) {
+    this.context = context;
+    this.entity  = entity;
+    this.state   = 0xffff;
+    this.info    = info;
+    
+    this.timestamp = timestamp;
+  }
+  
+  public MonEvent.Type type() {
+    if(info == null)
+      return MonEvent.Type.STATE;
+    else
+      return MonEvent.Type.INFO;
+  }
+  
+  public int getContext() {
+    return context;
+  }
+  
+  public int getEntity() {
+    return entity;
+  }
+  
+  public int getState() {
+    return state;
+  }
+  
+  public byte[] getInfo() {
+    return info;
+  }
+  
+  public MonTimestamp getTimestamp() {
+    return timestamp;
+  }
 }
-

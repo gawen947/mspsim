@@ -31,30 +31,52 @@
  *
  * -----------------------------------------------------------------
  *
- * Warns when an event is skipped because no backend has been configured.
+ * Bufferize event when no backend has been configured.
  *
  * Author  : David Hauweele
- * Created : Jan 20 2016
+ * Created : Jan 21 2016
  * Updated : $Date:  $
  *           $Revision: $
  */
 
 package se.sics.mspsim.mon.backend;
 
+import java.util.ArrayList;
+
+import se.sics.mspsim.mon.MonEvent;
 import se.sics.mspsim.mon.MonTimestamp;
 import se.sics.mspsim.mon.switchable.SwitchableBackend;
 
-public class WarnSkipMon extends SwitchableMon {
+public class BufferSkipMon extends SwitchableMon {
+  private final ArrayList<MonEvent> buffer = new ArrayList<MonEvent>();
+  
   @Override
   protected void skipState(int context, int entity, int state, MonTimestamp timestamp) {
-    System.out.println(String.format("(mon) warning: state event skipped at %f ms (%l cycles)", timestamp.getMillis(), timestamp.getCycles()));
+    buffer.add(new MonEvent(context, entity, state, timestamp));
   }
+  
   @Override
   protected void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp) {
-    System.out.println(String.format("(mon) warning: info event skipped at %f ms (%l cycles)", timestamp.getMillis(), timestamp.getCycles()));
+    buffer.add(new MonEvent(context, entity, info, timestamp));
   }
+
   @Override
-  protected void initBackend(SwitchableBackend backend) {}
+  protected void initBackend(SwitchableBackend backend) {
+    /* flush the buffer into the newly selected backend. */
+    for(MonEvent event : buffer) {
+      switch(event.type()) {
+        case STATE:
+          backend.recordState(event.getContext(), event.getEntity(), event.getState(), event.getTimestamp());
+          break;
+        case INFO:
+          backend.recordInfo(event.getContext(), event.getEntity(), event.getInfo(), event.getTimestamp());
+          break;
+      }
+    }
+    
+    buffer.clear();
+  }
+
   @Override
   protected void destroyBackend(SwitchableBackend backend) {}
 }

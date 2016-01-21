@@ -42,6 +42,7 @@
 package se.sics.mspsim.mon.backend;
 
 import se.sics.mspsim.mon.MonTimestamp;
+import se.sics.mspsim.mon.switchable.SwitchableBackend;
 
 public class CountSkipMon extends SwitchableMon {
   private int stateSkipped = 0;
@@ -63,9 +64,16 @@ public class CountSkipMon extends SwitchableMon {
   protected void skipState(int context, int entity, int state, MonTimestamp timestamp) {
     stateSkipped++;
   }
+  
   @Override
   protected void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp) {
     infoSkipped++;
   }
+
+  @Override
+  protected void initBackend(SwitchableBackend backend) {}
+
+  @Override
+  protected void destroyBackend(SwitchableBackend backend) {}
 }
 
