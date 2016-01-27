@@ -31,7 +31,7 @@
  *
  * -----------------------------------------------------------------
  *
- * Record events from into a file (dedicated to a single mote).
+ * Write events on StdOut.
  *
  * Author  : David Hauweele
  * Created : Jan 27 2016
