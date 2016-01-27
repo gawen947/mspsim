@@ -45,6 +45,7 @@ import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonError;
 import se.sics.mspsim.mon.MonTimestamp;
+import se.sics.mspsim.util.Utils;
 
 public abstract class MonBackend {
   /* The monitor has to be initialized with
@@ -117,7 +118,7 @@ public abstract class MonBackend {
       /* If the source was already in network order,
          we don't need to change anything. Unlikely
          though because we know its an MSP430. */
-      if(state == htons(MonBackend.MON_ST_CHECK))
+      if(state == Utils.htons(MonBackend.MON_ST_CHECK))
         byteOrder = ByteOrder.BIG_ENDIAN;
       else
         byteOrder = ByteOrder.LITTLE_ENDIAN;
@@ -203,6 +204,10 @@ public abstract class MonBackend {
     }
   }
 
+  protected int xtohs(int value) {
+    return Utils.xtohs(value, getEndian());
+  }
+  
   /** Record an event into the backend. */
   protected abstract void recordState(int context, int entity, int state,
                                       MonTimestamp timestamp);
@@ -214,30 +219,6 @@ public abstract class MonBackend {
   /** Signal that the monitor protocol has been intiated.
       Offsets and endianness should be accessible. */
   protected abstract void initiated();
-
-  /** Convert a short to network byte order. */
-  protected static int htons(int value) {
-    /* network order is in big endian */
-    if(ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN)
-      return value;
-    else
-      return reverseU16(value);
-  }
-
-  /** Convert a short from source to host byte order. */
-  protected int xtohs(int value) {
-    if(initState != MonInitState.INITIATED)
-      throw new MonError("protocol not initiated");
-
-    if(ByteOrder.nativeOrder() == byteOrder)
-      return value;
-    else
-      return reverseU16(value);
-  }
-
-  private static int reverseU16(int value) {
-    return ((value << 8) | (value >> 8)) & 0xffff;
-  }
 
   protected MonTimestamp reduceRecordOffset(MonTimestamp timestamp) {
     return timestamp.reduce(recordOffset);

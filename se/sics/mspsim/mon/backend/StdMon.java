@@ -44,6 +44,7 @@ package se.sics.mspsim.mon.backend;
 import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonTimestamp;
+import se.sics.mspsim.util.Utils;
 
 public class StdMon extends MonBackend {
   public void initiated() {
