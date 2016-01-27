@@ -43,6 +43,7 @@ package se.sics.mspsim.mon.backend;
 
 import java.util.ArrayList;
 
+import se.sics.mspsim.mon.MonError;
 import se.sics.mspsim.mon.MonEvent;
 import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
@@ -71,7 +72,7 @@ public class BufferSkipMon extends SwitchableMon {
             backend.recordState(event.getContext(), event.getEntity(), event.getState(), event.getTimestamp());
           } catch (MonException e) {
             /* FIXME: Push an exception up to the UI. */
-            throw new RuntimeException("monitor backend error");
+            throw new MonError("monitor backend error");
           }
           break;
         case INFO:
@@ -79,7 +80,7 @@ public class BufferSkipMon extends SwitchableMon {
             backend.recordInfo(event.getContext(), event.getEntity(), event.getInfo(), event.getTimestamp());
           } catch (MonException e) {
             /* FIXME: Push an exception up to the UI. */
-            throw new RuntimeException("monitor backend error");
+            throw new MonError("monitor backend error");
           }
           break;
       }

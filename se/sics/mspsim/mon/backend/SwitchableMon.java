@@ -43,6 +43,7 @@ package se.sics.mspsim.mon.backend;
 
 import java.nio.ByteOrder;
 
+import se.sics.mspsim.mon.MonError;
 import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
 import se.sics.mspsim.mon.switchable.SwitchableMonBackend;
@@ -154,7 +155,7 @@ public abstract class SwitchableMon extends MonBackend {
      * At least I put a fixme.
      * 
      * FIXME: propagate exception up to the UI. */
-    throw new RuntimeException("monitor backend error");
+    throw new MonError("monitor backend error");
   }
   
   /* subclasses must override this to provide their own implementation for skipped events. */
