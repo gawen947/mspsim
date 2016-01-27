@@ -96,5 +96,19 @@ public class StdMon extends MonBackend {
   public void close() {
     System.out.println("(mon) close!");
   }
+  
+
+  private int xtohs(int value) {
+    return Utils.xtohs(value, getEndian());
+  }
+  
+  private MonTimestamp reduceRecordOffset(MonTimestamp timestamp) {
+    return timestamp.reduce(getRecordOffset());
+  }
+
+  private MonTimestamp reduceInfoOffset(MonTimestamp timestamp, int bufferLen) {
+    timestamp = timestamp.reduce(getInfoOffset());
+    return timestamp.reduce(getByteOffset(), bufferLen);
+  }
 }
 

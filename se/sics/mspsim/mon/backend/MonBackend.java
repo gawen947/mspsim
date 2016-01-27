@@ -203,10 +203,6 @@ public abstract class MonBackend {
       return;
     }
   }
-
-  protected int xtohs(int value) {
-    return Utils.xtohs(value, getEndian());
-  }
   
   /** Record an event into the backend. */
   protected abstract void recordState(int context, int entity, int state,
@@ -219,15 +215,6 @@ public abstract class MonBackend {
   /** Signal that the monitor protocol has been intiated.
       Offsets and endianness should be accessible. */
   protected abstract void initiated();
-
-  protected MonTimestamp reduceRecordOffset(MonTimestamp timestamp) {
-    return timestamp.reduce(recordOffset);
-  }
-
-  protected MonTimestamp reduceInfoOffset(MonTimestamp timestamp, int bufferLen) {
-    timestamp = timestamp.reduce(infoOffset);
-    return timestamp.reduce(byteOffset, bufferLen);
-  }
 
   private void error(String message) {
     System.out.printf("(mon) error: %s\n", message);
