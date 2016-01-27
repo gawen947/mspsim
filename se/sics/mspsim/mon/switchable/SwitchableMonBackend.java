@@ -41,14 +41,43 @@
 
 package se.sics.mspsim.mon.switchable;
 
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonTimestamp;
 
-public interface SwitchableBackend {
-  public void init(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder);
-  public void destroy();
+abstract public class SwitchableMonBackend {
+  protected final MonTimestamp recordOffset;
+  protected final MonTimestamp infoOffset;
+  protected final MonTimestamp byteOffset;
+  protected final ByteOrder    byteOrder;
   
-  public void recordState(int context, int entity, int state, MonTimestamp timestamp);
-  public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp);
+  public SwitchableMonBackend(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder) {
+    this.recordOffset = recordOffset;
+    this.infoOffset   = infoOffset;
+    this.byteOffset   = byteOffset;
+    this.byteOrder    = byteOrder;
+  }
+  
+  /* Useful static for file backends. */
+  static protected byte[] toBytes(int value, ByteOrder byteOrder) {
+    ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE >> 3);
+    buf.order(byteOrder);
+    buf.putInt(value);
+    
+    return buf.array();
+  }
+
+  static protected byte[] toBytes(short value, ByteOrder byteOrder) {
+    ByteBuffer buf = ByteBuffer.allocate(Short.SIZE >> 3);
+    buf.order(byteOrder);
+    buf.putShort(value);
+   
+    return buf.array();
+  }
+  
+  abstract public void recordState(int context, int entity, int state, MonTimestamp timestamp);
+  abstract public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp);
+
+  abstract public void destroy();
 }

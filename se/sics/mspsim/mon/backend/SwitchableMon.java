@@ -44,14 +44,15 @@ package se.sics.mspsim.mon.backend;
 import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonTimestamp;
-import se.sics.mspsim.mon.switchable.SwitchableBackend;
+import se.sics.mspsim.mon.switchable.SwitchableMonBackend;
+import se.sics.mspsim.mon.switchable.SwitchableMonBackendCreator;
 
 public abstract class SwitchableMon extends MonBackend {
   private MonTimestamp recordOffset = null;
   private MonTimestamp infoOffset   = null;
   private MonTimestamp byteOffset   = null;
   
-  private SwitchableBackend backend = null;
+  private SwitchableMonBackend backend = null;
   
   protected void initiated() {
     recordOffset = getRecordOffset();
@@ -59,21 +60,25 @@ public abstract class SwitchableMon extends MonBackend {
     byteOffset   = getByteOffset();
   }
 
-  public void selectBackend(SwitchableBackend backend) {
+  public void selectBackend(SwitchableMonBackendCreator backendCreator) {
     if(this.backend != null)
       /* replace a currently existing backend */
-      this.backend.destroy();
+      close();
     
-    this.backend = backend;
-    
-    backend.init(recordOffset, infoOffset, byteOffset, getEndian());
-    initBackend(backend);
+    /* create the backend instance now */
+    this.backend = backendCreator.create(recordOffset, infoOffset, byteOffset, getEndian());
+
+    /* Tell subclasses about the newly created backend instance.
+     * This subclass implement behaviors to react to events that
+     * are triggered when no backend is currently selected. */
+    initSkip(backend);
   }
   
   public void recordState(int context, int entity, int state, MonTimestamp timestamp) {
     if(backend != null)
       backend.recordState(context, entity, state, timestamp);
     else
+      /* no backend selected, skip event and tell subclass */
       skipState(context, entity, state, timestamp);
   }
 
@@ -81,13 +86,17 @@ public abstract class SwitchableMon extends MonBackend {
     if(backend != null)
       backend.recordInfo(context, entity, info, timestamp);
     else
+      /* no backend selected, skip event and tell subclass */
       skipInfo(context, entity, info, timestamp);
   }
   
   public void close() {
     if(this.backend != null) {
+      /* tell the backend to finalize any pending operation */
       this.backend.destroy();
-      destroyBackend(this.backend);
+      
+      /* tell subclass that the currently selected backend was just destroyed */
+      destroySkip(this.backend);
       
       this.backend = null;
     }
@@ -96,6 +105,6 @@ public abstract class SwitchableMon extends MonBackend {
   /* subclasses must override this to provide their own implementation for skipped events. */
   protected abstract void skipState(int context, int entity, int state, MonTimestamp timestamp);
   protected abstract void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp);
-  protected abstract void initBackend(SwitchableBackend backend);
-  protected abstract void destroyBackend(SwitchableBackend backend);
+  protected abstract void initSkip(SwitchableMonBackend backend);
+  protected abstract void destroySkip(SwitchableMonBackend backend);
 }

@@ -31,53 +31,20 @@
  *
  * -----------------------------------------------------------------
  *
- * Bufferize event when no backend has been configured.
+ * Create a switchable mon backend.
  *
  * Author  : David Hauweele
- * Created : Jan 21 2016
+ * Created : Jan 27 2016
  * Updated : $Date:  $
  *           $Revision: $
  */
 
-package se.sics.mspsim.mon.backend;
+package se.sics.mspsim.mon.switchable;
 
-import java.util.ArrayList;
+import java.nio.ByteOrder;
 
-import se.sics.mspsim.mon.MonEvent;
 import se.sics.mspsim.mon.MonTimestamp;
-import se.sics.mspsim.mon.switchable.SwitchableMonBackend;
 
-public class BufferSkipMon extends SwitchableMon {
-  private final ArrayList<MonEvent> buffer = new ArrayList<MonEvent>();
-  
-  @Override
-  protected void skipState(int context, int entity, int state, MonTimestamp timestamp) {
-    buffer.add(new MonEvent(context, entity, state, timestamp));
-  }
-  
-  @Override
-  protected void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp) {
-    buffer.add(new MonEvent(context, entity, info, timestamp));
-  }
-
-  @Override
-  protected void initSkip(SwitchableMonBackend backend) {
-    /* flush the buffer into the newly selected backend. */
-    for(MonEvent event : buffer) {
-      switch(event.type()) {
-        case STATE:
-          backend.recordState(event.getContext(), event.getEntity(), event.getState(), event.getTimestamp());
-          break;
-        case INFO:
-          backend.recordInfo(event.getContext(), event.getEntity(), event.getInfo(), event.getTimestamp());
-          break;
-      }
-    }
-    
-    buffer.clear();
-  }
-
-  @Override
-  protected void destroySkip(SwitchableMonBackend backend) {}
+public interface SwitchableMonBackendCreator {
+  public SwitchableMonBackend create(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder);
 }
-

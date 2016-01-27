@@ -42,7 +42,7 @@
 package se.sics.mspsim.mon.backend;
 
 import se.sics.mspsim.mon.MonTimestamp;
-import se.sics.mspsim.mon.switchable.SwitchableBackend;
+import se.sics.mspsim.mon.switchable.SwitchableMonBackend;
 
 public class IgnoreSkipMon extends SwitchableMon {
   /* We just ignore events when no backend has been configured. */
@@ -51,8 +51,8 @@ public class IgnoreSkipMon extends SwitchableMon {
   @Override
   protected void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp) {}
   @Override
-  protected void initBackend(SwitchableBackend backend) {}
+  protected void initSkip(SwitchableMonBackend backend) {}
   @Override
-  protected void destroyBackend(SwitchableBackend backend) {}
+  protected void destroySkip(SwitchableMonBackend backend) {}
 }
 

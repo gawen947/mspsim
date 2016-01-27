@@ -66,7 +66,7 @@ public class FileMon extends MonBackend {
     System.out.println("(mon) log backend disabled!");
   }
   
-  protected byte[] toBytes(int value, ByteOrder byteOrder) {
+  static protected byte[] toBytes(int value, ByteOrder byteOrder) {
     ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE >> 3);
     buf.order(byteOrder);
     buf.putInt(value);
@@ -74,7 +74,7 @@ public class FileMon extends MonBackend {
     return buf.array();
   }
 
-  protected byte[] toBytes(short value, ByteOrder byteOrder) {
+  static protected byte[] toBytes(short value, ByteOrder byteOrder) {
     ByteBuffer buf = ByteBuffer.allocate(Short.SIZE >> 3);
     buf.order(byteOrder);
     buf.putShort(value);

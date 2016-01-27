@@ -42,7 +42,7 @@
 package se.sics.mspsim.mon.backend;
 
 import se.sics.mspsim.mon.MonTimestamp;
-import se.sics.mspsim.mon.switchable.SwitchableBackend;
+import se.sics.mspsim.mon.switchable.SwitchableMonBackend;
 
 public class WarnSkipMon extends SwitchableMon {
   @Override
@@ -54,8 +54,8 @@ public class WarnSkipMon extends SwitchableMon {
     System.out.println(String.format("(mon) warning: info event skipped at %f ms (%l cycles)", timestamp.getMillis(), timestamp.getCycles()));
   }
   @Override
-  protected void initBackend(SwitchableBackend backend) {}
+  protected void initSkip(SwitchableMonBackend backend) {}
   @Override
-  protected void destroyBackend(SwitchableBackend backend) {}
+  protected void destroySkip(SwitchableMonBackend backend) {}
 }
 
