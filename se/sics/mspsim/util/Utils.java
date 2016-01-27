@@ -40,6 +40,9 @@
  */
 package se.sics.mspsim.util;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class Utils {
   private static final String str16 = "0000000000000000";
 
@@ -235,7 +238,25 @@ public class Utils {
     return true;
   }
 
-
+  /* Useful static for some monitor backends.
+   * Note that we cannot use generic here.
+   * Or at least I don't know how to do that "easily". */
+  public static byte[] toBytes(int value, ByteOrder byteOrder) {
+    ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE >> 3);
+    buf.order(byteOrder);
+    buf.putInt(value);
+    
+    return buf.array();
+  }
+  
+  public static byte[] toBytes(short value, ByteOrder byteOrder) {
+    ByteBuffer buf = ByteBuffer.allocate(Short.SIZE >> 3);
+    buf.order(byteOrder);
+    buf.putShort(value);
+   
+    return buf.array();
+  }
+  
 //  public static void main(String[] args) {
 //    System.out.println("Hex 47 = " + hex8(47));
 //  }

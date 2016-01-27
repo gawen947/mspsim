@@ -50,6 +50,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonTimestamp;
+import se.sics.mspsim.util.Utils;
 
 public class FileMon extends MonBackend { 
   public static final int MAGIK = 0x63746b6d; /* 'ctkm' */
@@ -64,22 +65,6 @@ public class FileMon extends MonBackend {
   private void disable() {
 	out = null;
     System.out.println("(mon) log backend disabled!");
-  }
-  
-  static protected byte[] toBytes(int value, ByteOrder byteOrder) {
-    ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE >> 3);
-    buf.order(byteOrder);
-    buf.putInt(value);
-    
-    return buf.array();
-  }
-
-  static protected byte[] toBytes(short value, ByteOrder byteOrder) {
-    ByteBuffer buf = ByteBuffer.allocate(Short.SIZE >> 3);
-    buf.order(byteOrder);
-    buf.putShort(value);
-   
-    return buf.array();
   }
   
   protected void initiated() {
@@ -113,7 +98,7 @@ public class FileMon extends MonBackend {
     if(out == null)
       return;
     
-    out.write(toBytes(MAGIK, ByteOrder.BIG_ENDIAN));
+    out.write(Utils.toBytes(MAGIK, ByteOrder.BIG_ENDIAN));
   }
   
   private void writeControl() throws IOException {
@@ -128,7 +113,7 @@ public class FileMon extends MonBackend {
     if(getEndian() == ByteOrder.LITTLE_ENDIAN)
       control |= 1;
     
-    out.write(toBytes(control, ByteOrder.BIG_ENDIAN));
+    out.write(Utils.toBytes(control, ByteOrder.BIG_ENDIAN));
   }
   
   private void writeTime(MonTimestamp offset) throws IOException {
@@ -142,9 +127,9 @@ public class FileMon extends MonBackend {
                              MonTimestamp timestamp) {
     try {
       out.write(timestamp.toBytes(getEndian()));
-      out.write(toBytes((short)context, getEndian()));
-      out.write(toBytes((short)entity, getEndian()));
-      out.write(toBytes((short)state, getEndian()));
+      out.write(Utils.toBytes((short)context, getEndian()));
+      out.write(Utils.toBytes((short)entity, getEndian()));
+      out.write(Utils.toBytes((short)state, getEndian()));
     } catch (IOException e) {
       System.out.println("(mon) write error!");
       disable();
@@ -155,9 +140,9 @@ public class FileMon extends MonBackend {
                             MonTimestamp timestamp) {
     try {
       out.write(timestamp.toBytes(getEndian()));
-      out.write(toBytes((short)context, getEndian()));
-      out.write(toBytes((short)entity, getEndian()));
-      out.write(toBytes((short)0xffff, getEndian())); /* special state to announce info */
+      out.write(Utils.toBytes((short)context, getEndian()));
+      out.write(Utils.toBytes((short)entity, getEndian()));
+      out.write(Utils.toBytes((short)0xffff, getEndian())); /* special state to announce info */
       
       out.write(info);
     } catch (IOException e) {

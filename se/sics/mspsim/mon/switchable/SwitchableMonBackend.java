@@ -60,23 +60,6 @@ abstract public class SwitchableMonBackend {
     this.byteOrder    = byteOrder;
   }
   
-  /* Useful static for file backends. */
-  static protected byte[] toBytes(int value, ByteOrder byteOrder) {
-    ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE >> 3);
-    buf.order(byteOrder);
-    buf.putInt(value);
-    
-    return buf.array();
-  }
-
-  static protected byte[] toBytes(short value, ByteOrder byteOrder) {
-    ByteBuffer buf = ByteBuffer.allocate(Short.SIZE >> 3);
-    buf.order(byteOrder);
-    buf.putShort(value);
-   
-    return buf.array();
-  }
-  
   abstract public void recordState(int context, int entity, int state, MonTimestamp timestamp) throws MonException;
   abstract public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp) throws MonException;
 
