@@ -43,8 +43,9 @@ package se.sics.mspsim.mon.switchable;
 
 import java.nio.ByteOrder;
 
+import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
 
 public interface SwitchableMonBackendCreator {
-  public SwitchableMonBackend create(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder);
+  public SwitchableMonBackend create(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder) throws MonException;
 }

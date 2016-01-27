@@ -31,10 +31,10 @@
  *
  * -----------------------------------------------------------------
  *
- * Exception occuring in the monitor (especially the backend).
+ * Exception occuring in the monitor.
  *
  * Author  : David Hauweele
- * Created : Dec 7 2015
+ * Created : Jan 27 2015
  * Updated : $Date:  $
  *           $Revision: $
  */

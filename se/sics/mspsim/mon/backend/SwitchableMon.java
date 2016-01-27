@@ -43,6 +43,7 @@ package se.sics.mspsim.mon.backend;
 
 import java.nio.ByteOrder;
 
+import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
 import se.sics.mspsim.mon.switchable.SwitchableMonBackend;
 import se.sics.mspsim.mon.switchable.SwitchableMonBackendCreator;
@@ -66,45 +67,99 @@ public abstract class SwitchableMon extends MonBackend {
       close();
     
     /* create the backend instance now */
-    this.backend = backendCreator.create(recordOffset, infoOffset, byteOffset, getEndian());
-
-    /* Tell subclasses about the newly created backend instance.
-     * This subclass implement behaviors to react to events that
-     * are triggered when no backend is currently selected. */
-    initSkip(backend);
+    try {
+      this.backend = backendCreator.create(recordOffset, infoOffset, byteOffset, getEndian());
+      
+      /* Tell subclasses about the newly created backend instance.
+       * This subclass implement behaviors to react to events that
+       * are triggered when no backend is currently selected. */
+      initSkip(backend);
+    } catch (MonException e) {
+      /* If something bad happened during the backend creation,
+       * tell the user and acts like if no backend was selected. */
+      backendError(e);
+      return;
+    }
   }
   
   public void recordState(int context, int entity, int state, MonTimestamp timestamp) {
-    if(backend != null)
-      backend.recordState(context, entity, state, timestamp);
-    else
-      /* no backend selected, skip event and tell subclass */
-      skipState(context, entity, state, timestamp);
+    try {
+      if(backend != null)
+        backend.recordState(context, entity, state, timestamp);
+      else
+        /* no backend selected, skip event and tell subclass */
+        skipState(context, entity, state, timestamp);
+    } catch(MonException e) {
+      /* If something bad happened during the backend creation,
+       * tell the user and acts like if no backend was selected. */
+      backendError(e);
+      return;
+    }
   }
 
   public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp) {
-    if(backend != null)
-      backend.recordInfo(context, entity, info, timestamp);
-    else
-      /* no backend selected, skip event and tell subclass */
-      skipInfo(context, entity, info, timestamp);
+    try {
+      if(backend != null)
+        backend.recordInfo(context, entity, info, timestamp);
+      else
+        /* no backend selected, skip event and tell subclass */
+        skipInfo(context, entity, info, timestamp);
+    } catch(MonException e) {
+      /* If something bad happened during the backend creation,
+       * tell the user and acts like if no backend was selected. */
+      backendError(e);
+      return;
+    }
   }
   
   public void close() {
     if(this.backend != null) {
       /* tell the backend to finalize any pending operation */
-      this.backend.destroy();
-      
-      /* tell subclass that the currently selected backend was just destroyed */
-      destroySkip(this.backend);
-      
-      this.backend = null;
+      try {
+        this.backend.destroy();
+      } catch (MonException e) {
+        /* If we cannot destroy the backend, at least we can mark it as erroneous and unselected. */
+        backendError(e);
+      }
+
+      unselect();      
     }
   }
   
+  private void unselect() {
+    if(this.backend != null) {
+      /* tell subclass that the currently selected backend was just destroyed */
+      destroySkip(this.backend);
+      
+      /* marks that no backend are currently selected */
+      this.backend = null;
+      
+      System.out.println("(mon) backend disabled!");
+    }
+  }
+  
+  private void backendError(MonException e) {   
+    unselect();
+
+    /* This is ugly! I know...
+     * If we have an error while recording events,
+     * we want the complete simulation to stop.
+     * Otherwise we would have to throw the exception
+     * upwards (up to the user interface).
+     * 
+     * But this is still research code. So it's OK for now.
+     * We better abort an erroneous simulation than risking
+     * to base our observations on invalid results.
+     * 
+     * At least I put a fixme.
+     * 
+     * FIXME: propagate exception up to the UI. */
+    throw new RuntimeException("monitor backend error");
+  }
+  
   /* subclasses must override this to provide their own implementation for skipped events. */
-  protected abstract void skipState(int context, int entity, int state, MonTimestamp timestamp);
-  protected abstract void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp);
+  protected abstract void skipState(int context, int entity, int state, MonTimestamp timestamp) throws MonException;
+  protected abstract void skipInfo(int context, int entity, byte[] info, MonTimestamp timestamp) throws MonException;
   protected abstract void initSkip(SwitchableMonBackend backend);
   protected abstract void destroySkip(SwitchableMonBackend backend);
 }

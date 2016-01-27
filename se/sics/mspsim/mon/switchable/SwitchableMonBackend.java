@@ -44,6 +44,7 @@ package se.sics.mspsim.mon.switchable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
 
 abstract public class SwitchableMonBackend {
@@ -52,7 +53,7 @@ abstract public class SwitchableMonBackend {
   protected final MonTimestamp byteOffset;
   protected final ByteOrder    byteOrder;
   
-  public SwitchableMonBackend(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder) {
+  public SwitchableMonBackend(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder) throws MonException {
     this.recordOffset = recordOffset;
     this.infoOffset   = infoOffset;
     this.byteOffset   = byteOffset;
@@ -76,8 +77,8 @@ abstract public class SwitchableMonBackend {
     return buf.array();
   }
   
-  abstract public void recordState(int context, int entity, int state, MonTimestamp timestamp);
-  abstract public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp);
+  abstract public void recordState(int context, int entity, int state, MonTimestamp timestamp) throws MonException;
+  abstract public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp) throws MonException;
 
-  abstract public void destroy();
+  abstract public void destroy() throws MonException;
 }
