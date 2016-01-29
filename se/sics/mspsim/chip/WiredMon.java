@@ -45,6 +45,7 @@ import se.sics.mspsim.core.Chip;
 import se.sics.mspsim.core.MSP430Core;
 import se.sics.mspsim.mon.backend.MonBackend;
 import se.sics.mspsim.mon.MonTimestamp;
+import se.sics.mspsim.mon.MonitorDevice;
 
 /**
  Message format:
@@ -54,7 +55,7 @@ import se.sics.mspsim.mon.MonTimestamp;
 
  Special state -1 (0xffff) signal extra info.
 */
-public class WiredMon extends Chip {
+public class WiredMon extends Chip implements MonitorDevice {
   private enum WiredMonState {
     CONTEXT,
     ENTITY,
@@ -187,5 +188,10 @@ public class WiredMon extends Chip {
 
   public int getModeMax() {
     return 0;
+  }
+
+  @Override
+  public MonBackend getBackend() {
+    return backend;
   }
 }

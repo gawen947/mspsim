@@ -44,8 +44,9 @@ package se.sics.mspsim.core;
 
 import se.sics.mspsim.mon.backend.MonBackend;
 import se.sics.mspsim.mon.MonTimestamp;
+import se.sics.mspsim.mon.MonitorDevice;
 
-public class RegMon extends IOUnit {
+public class RegMon extends IOUnit implements MonitorDevice {
   public static final int MONCTX = 0x1C0; /* context */
   public static final int MONENT = 0x1C2; /* entity */
   public static final int MONSTI = 0x1C4; /* state/info */
@@ -117,5 +118,9 @@ public class RegMon extends IOUnit {
     backend.info(ctx, ent, info,
                  new MonTimestamp(cpu.cycles, cpu.getTimeMillis()));
   }
-}
 
+  @Override
+  public MonBackend getBackend() {
+    return backend;
+  }
+}
