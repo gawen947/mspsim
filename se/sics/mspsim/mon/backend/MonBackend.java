@@ -111,6 +111,11 @@ public abstract class MonBackend {
       throw new MonError("protocol not initiated");
     return byteOrder;
   }
+  
+  /** Return true if the monitor has been initiated. */
+  protected boolean isInitiated() {
+    return initState == MonInitState.INITIATED;
+  }
 
   public void state(int context, int entity, int state, MonTimestamp timestamp) {
     switch(initState) {
@@ -222,4 +227,3 @@ public abstract class MonBackend {
   
   public abstract void close();
 }
-

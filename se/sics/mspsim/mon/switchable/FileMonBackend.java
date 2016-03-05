@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, David Hauweele <david@hauweele.net>
+ * Copyright (c) 2016, David Hauweele <david@hauweele.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ import se.sics.mspsim.util.Utils;
 
 public class FileMonBackend extends SwitchableMonBackend {
   /* Use an instance of this class to tell SwitchableMon how to create this backend. */
-  public class Creator implements SwitchableMonBackendCreator {
+  static public class Creator implements SwitchableMonBackendCreator {
     private final String filePath;
     
     public Creator(String filePath) {
@@ -164,5 +164,4 @@ public class FileMonBackend extends SwitchableMonBackend {
     
     out.write(offset.toBytes(endianness));
   }
-
 }

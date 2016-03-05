@@ -41,7 +41,6 @@
 
 package se.sics.mspsim.mon.switchable;
 
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonException;

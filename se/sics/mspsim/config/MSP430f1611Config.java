@@ -48,8 +48,9 @@ import se.sics.mspsim.core.Multiplier;
 import se.sics.mspsim.core.Timer;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.RegMon;
-import se.sics.mspsim.mon.backend.StdMon;
-import se.sics.mspsim.mon.backend.FileMon;
+import se.sics.mspsim.mon.backend.ErrorSkipMon;
+import se.sics.mspsim.mon.backend.SwitchableMon;
+import se.sics.mspsim.mon.switchable.TraceMonBackend;
 
 public class MSP430f1611Config extends MSP430Config {
 
@@ -118,10 +119,34 @@ public class MSP430f1611Config extends MSP430Config {
         cpu.setIORange(0x150, 16, adc12);
         cpu.setIORange(0x1a0, 10, adc12);
 
-        RegMon regMon = new RegMon(cpu, new FileMon("regmon.mon"));
+        SwitchableMon backend = new ErrorSkipMon();
+        RegMon regMon = new RegMon(cpu, backend);
+        backend.selectBackend(new TraceMonBackend.Creator("mspsim.trace"));
+
+        /* Register an output handler to flush the trace
+         * when the emulator exit. This is really "hacky"...
+         * Too "hacky" for me... But it'll get better when
+         * all the monitor will be recoded as a standalone
+         * Cooja plugin (if it ever does). */
+        Runtime.getRuntime().addShutdownHook(new ShutdownHandler(backend));
+        
         ioUnits.add(regMon);
         cpu.setIORange(0x1c0, 8, regMon);
 
         return 3 + 6;
+    }
+    
+    private static class ShutdownHandler extends Thread {
+      private final SwitchableMon backend;
+      
+      public ShutdownHandler(SwitchableMon backend) {
+        super("FileMon-Shutdown");
+        
+        this.backend = backend;
+      }
+      
+      public void run() {
+        backend.close();
+      }
     }
 }

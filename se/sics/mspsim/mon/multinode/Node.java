@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, David Hauweele <david@hauweele.net>
+ * Copyright (c) 2016, David Hauweele <david@hauweele.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,70 +31,33 @@
  *
  * -----------------------------------------------------------------
  *
- * Monitor event timestamp information.
- * Can also be used to record a duration and manage offsets.
- *
- * Author  : David Hauweele
- * Created : Dec 7 2015
- * Updated : $Date:  $
- *           $Revision: $
+ * Events that happen within a single node.
  */
 
-package se.sics.mspsim.mon;
+package se.sics.mspsim.mon.multinode;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.io.IOException;
+import java.io.OutputStream;
 
-public class MonTimestamp {
-  /* Size of a "serialized" MonTimestamp in bits. */
-  static public final int SIZE = Long.SIZE + Double.SIZE;
+import se.sics.mspsim.mon.MonTimestamp;
+
+public class Node extends Simulation implements Event {
+  private final MonTimestamp nodeTime;
+  private final short         nodeID;
   
-  private long   c;
-  private double ms;
-
-  public MonTimestamp(long cycles, double timeMillis) {
-    c  = cycles;
-    ms = timeMillis;
-  }
-
-  public long getCycles() {
-    return c;
-  }
-
-  public double getMillis() {
-    return ms;
-  }
-  
-  public byte[] toBytes(ByteOrder byteOrder) {
-    ByteBuffer buf = ByteBuffer.allocate(MonTimestamp.SIZE >> 3);
-    buf.order(byteOrder);
+  public Node(double simTime, MonTimestamp nodeTime, short nodeID) {
+    super(simTime);
     
-    buf.putLong(getCycles());
-    buf.putDouble(getMillis());
+    this.nodeTime = nodeTime;
+    this.nodeID   = nodeID;
+  }
+
+  @Override
+  public void write(OutputStream out) throws IOException {
+    super.write(out);
     
-    return buf.array();
-  }
-
-  public MonTimestamp diff(MonTimestamp mon) {
-    return new MonTimestamp(Math.abs(mon.getCycles() - c),
-                            Math.abs(mon.getMillis() - ms));
-  }
-
-  public MonTimestamp reduce(MonTimestamp offset, int times) {
-    return new MonTimestamp(c  - times * offset.getCycles(),
-                            ms - times * offset.getMillis());
-  }
-
-  public MonTimestamp reduce(MonTimestamp offset) {
-    return reduce(offset, 1);
+    writeHeader(out, EventType.NODE, (MonTimestamp.SIZE + Short.SIZE) >> 3);
+    writeBytes(out, nodeTime);
+    writeBytes(out, nodeID);
   }
 }
-
-
-
-
-
-
-
-
-

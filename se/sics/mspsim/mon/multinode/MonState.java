@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, David Hauweele <david@hauweele.net>
+ * Copyright (c) 2016, David Hauweele <david@hauweele.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,70 +31,37 @@
  *
  * -----------------------------------------------------------------
  *
- * Monitor event timestamp information.
- * Can also be used to record a duration and manage offsets.
- *
- * Author  : David Hauweele
- * Created : Dec 7 2015
- * Updated : $Date:  $
- *           $Revision: $
+ * A state event from the monitor.
  */
 
-package se.sics.mspsim.mon;
+package se.sics.mspsim.mon.multinode;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.io.IOException;
+import java.io.OutputStream;
 
-public class MonTimestamp {
-  /* Size of a "serialized" MonTimestamp in bits. */
-  static public final int SIZE = Long.SIZE + Double.SIZE;
+import se.sics.mspsim.mon.MonTimestamp;
+
+public class MonState extends Node implements Event {
+  private final short context;
+  private final short entity;
+  private final short state;
   
-  private long   c;
-  private double ms;
-
-  public MonTimestamp(long cycles, double timeMillis) {
-    c  = cycles;
-    ms = timeMillis;
-  }
-
-  public long getCycles() {
-    return c;
-  }
-
-  public double getMillis() {
-    return ms;
+  public MonState(double simTime, MonTimestamp nodeTime, short nodeID,
+                   short context, short entity, short state) {
+    super(simTime, nodeTime, nodeID);
+    
+    this.context = context;
+    this.entity  = entity;
+    this.state   = state;
   }
   
-  public byte[] toBytes(ByteOrder byteOrder) {
-    ByteBuffer buf = ByteBuffer.allocate(MonTimestamp.SIZE >> 3);
-    buf.order(byteOrder);
+  @Override
+  public void write(OutputStream out) throws IOException {
+    super.write(out);
     
-    buf.putLong(getCycles());
-    buf.putDouble(getMillis());
-    
-    return buf.array();
-  }
-
-  public MonTimestamp diff(MonTimestamp mon) {
-    return new MonTimestamp(Math.abs(mon.getCycles() - c),
-                            Math.abs(mon.getMillis() - ms));
-  }
-
-  public MonTimestamp reduce(MonTimestamp offset, int times) {
-    return new MonTimestamp(c  - times * offset.getCycles(),
-                            ms - times * offset.getMillis());
-  }
-
-  public MonTimestamp reduce(MonTimestamp offset) {
-    return reduce(offset, 1);
+    writeHeader(out, EventType.MON_STATE, (Short.SIZE * 3) >> 3);
+    writeBytes(out, context);
+    writeBytes(out, entity);
+    writeBytes(out, state);
   }
 }
-
-
-
-
-
-
-
-
-

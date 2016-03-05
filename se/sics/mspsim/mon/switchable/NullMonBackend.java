@@ -48,7 +48,7 @@ import se.sics.mspsim.mon.MonTimestamp;
 
 public class NullMonBackend extends SwitchableMonBackend {
   /* Use an instance of this class to tell SwitchableMon how to create this backend. */
-  public class Creator implements SwitchableMonBackendCreator {
+  static public class Creator implements SwitchableMonBackendCreator {
     @Override
     public SwitchableMonBackend create(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder) throws MonException {
       return new NullMonBackend(recordOffset, infoOffset, byteOffset, byteOrder);

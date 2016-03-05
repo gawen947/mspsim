@@ -259,6 +259,15 @@ public class Utils {
     return buf.array();
   }
   
+  /** Convert a double to an array of byte using a specific endianness. */
+  public static byte[] toBytes(double value, ByteOrder byteOrder) {
+    ByteBuffer buf = ByteBuffer.allocate(Double.SIZE >> 3);
+    buf.order(byteOrder);
+    buf.putDouble(value);
+   
+    return buf.array();
+  }
+  
   /** Convert a short to network byte order. */
   public static int htons(int value) {
     /* network order is in big endian */

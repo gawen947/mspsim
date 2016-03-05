@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, David Hauweele <david@hauweele.net>
+ * Copyright (c) 2016, David Hauweele <david@hauweele.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,91 +31,85 @@
  *
  * -----------------------------------------------------------------
  *
- * Write events on StdOut.
- *
- * Author  : David Hauweele
- * Created : Jan 27 2016
- * Updated : $Date:  $
- *           $Revision: $
+ * Records events into a trace file (see TraceFile).
  */
+
 
 package se.sics.mspsim.mon.switchable;
 
+import java.io.IOException;
 import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
-import se.sics.mspsim.util.Utils;
+import se.sics.mspsim.mon.multinode.Event;
+import se.sics.mspsim.mon.multinode.MonData;
+import se.sics.mspsim.mon.multinode.MonOffset;
+import se.sics.mspsim.mon.multinode.MonState;
+import se.sics.mspsim.mon.multinode.TraceFile;
 
-public class StdMonBackend extends SwitchableMonBackend {
+public class TraceMonBackend extends SwitchableMonBackend {
   /* Use an instance of this class to tell SwitchableMon how to create this backend. */
   static public class Creator implements SwitchableMonBackendCreator {
-    @Override
+    private final String filePath;
+    
+    public Creator(String filePath) {
+      this.filePath = filePath;
+    }
+    
+    @Override   
     public SwitchableMonBackend create(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder) throws MonException {
-      return new StdMonBackend(recordOffset, infoOffset, byteOffset, byteOrder);
+      return new TraceMonBackend(recordOffset, infoOffset, byteOffset, byteOrder, filePath);
     }
   }
   
-  public StdMonBackend(MonTimestamp recordOffset, MonTimestamp infoOffset, MonTimestamp byteOffset, ByteOrder byteOrder) throws MonException {
+  private final TraceFile trace;
+  
+  public TraceMonBackend(MonTimestamp recordOffset, MonTimestamp infoOffset,
+                            MonTimestamp byteOffset, ByteOrder byteOrder, 
+                            String filePath) throws MonException {
     super(recordOffset, infoOffset, byteOffset, byteOrder);
     
-    System.out.println("(mon) initiated!");
-    System.out.printf("(mon) endianness: %s\n",
-                        byteOrder == ByteOrder.LITTLE_ENDIAN ? "LE"
-                                                                : "BE");
-    System.out.printf("(mon) record offset: %d cycles, %.3fus\n", recordOffset.getCycles(), recordOffset.getMillis() * 1000.);
-    System.out.printf("(mon) info offset  : %d cycles, %.3fus\n", infoOffset.getCycles(), infoOffset.getMillis() * 1000.);
-    System.out.printf("(mon) byte offset  : %d cycles, %.3fus\n", byteOffset.getCycles(), byteOffset.getMillis() * 1000.);
+    try {
+      trace = new TraceFile(filePath);
+      
+      MonTimestamp nullTime = new MonTimestamp(0, 0.);
+      Event ev = new MonOffset(0., nullTime, (short)0, recordOffset, infoOffset, byteOffset, byteOrder);
+      trace.write(ev);
+    } catch (IOException e) {
+      throw new MonException("cannot open/create '" + filePath + "'");
+    }
+    
+    System.out.println("(mon) trace backend created!");
   }
-
+  
   @Override
   public void recordState(int context, int entity, int state, MonTimestamp timestamp) throws MonException {
-    /* Since we display directly on stdout we must take care of endianness and offset. */
-    context = xtohs(context);
-    entity  = xtohs(entity);
-    state   = xtohs(state);
-
-    timestamp = reduceRecordOffset(timestamp);
-
-    System.out.printf("(mon) @%d %fms RECORD %d %d %d\n",
-                      timestamp.getCycles(), timestamp.getMillis(),
-                      context, entity, state);
+    Event ev = new MonState(0., timestamp, (short)0, (short)context, (short)entity, (short)state);
+    try {
+      trace.write(ev);
+    } catch (IOException e) {
+      throw new MonException("cannot write state event");
+    }
   }
 
   @Override
   public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp) throws MonException {
-    /* Since we display directly on stdout we must take care of endianness and offset. */
-    context = xtohs(context);
-    entity  = xtohs(entity);
-
-    timestamp = reduceInfoOffset(timestamp, info.length);
-
-    System.out.printf("(mon) @%d %fms INFO %d %d [",
-                      timestamp.getCycles(), timestamp.getMillis(),
-                      context, entity);
-
-    /* though the info buffer is not converted */
-    for(byte b : info)
-      System.out.printf("%02x", b);
-    System.out.printf("]\n");
+    Event ev = new MonData(0., timestamp, (short)0, (short)context, (short)entity, info);
+    try {
+      trace.write(ev);
+    } catch (IOException e) {
+      throw new MonException("cannot write data event");
+    }   
   }
 
   @Override
   public void destroy() throws MonException {
-    System.out.println("(mon) close!");
-  }
-
-  
-  private int xtohs(int value) {
-    return Utils.xtohs(value, byteOrder);
-  }
-  
-  private MonTimestamp reduceRecordOffset(MonTimestamp timestamp) {
-    return timestamp.reduce(recordOffset);
-  }
-
-  private MonTimestamp reduceInfoOffset(MonTimestamp timestamp, int bufferLen) {
-    timestamp = timestamp.reduce(infoOffset);
-    return timestamp.reduce(byteOffset, bufferLen);
+    try {
+      trace.destroy();
+      System.out.println("(mon) file backend closes!");
+    } catch (IOException e) {
+      throw new MonException("close error");
+    } 
   }
 }

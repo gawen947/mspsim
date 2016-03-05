@@ -41,8 +41,6 @@
 
 package se.sics.mspsim.mon.backend;
 
-import java.nio.ByteOrder;
-
 import se.sics.mspsim.mon.MonError;
 import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
@@ -56,31 +54,32 @@ public abstract class SwitchableMon extends MonBackend {
   
   private SwitchableMonBackend backend = null;
   
+  /* If we select a backend before the monitor has been initialized. */
+  private SwitchableMonBackendCreator delayedBackend = null;
+  
   protected void initiated() {
     recordOffset = getRecordOffset();
     infoOffset   = getInfoOffset();
     byteOffset   = getByteOffset();
+        
+    /* If backend creation was delayed (because the monitor was
+     * not already initiated), we create it now. */ 
+    if(delayedBackend != null)
+      createBackend(delayedBackend);
+    delayedBackend = null;
   }
 
   public void selectBackend(SwitchableMonBackendCreator backendCreator) {
     if(this.backend != null)
       /* replace a currently existing backend */
       close();
-    
-    /* create the backend instance now */
-    try {
-      this.backend = backendCreator.create(recordOffset, infoOffset, byteOffset, getEndian());
-      
-      /* Tell subclasses about the newly created backend instance.
-       * This subclass implement behaviors to react to events that
-       * are triggered when no backend is currently selected. */
-      initSkip(backend);
-    } catch (MonException e) {
-      /* If something bad happened during the backend creation,
-       * tell the user and acts like if no backend was selected. */
-      backendError(e);
-      return;
-    }
+        
+    /* If the monitor has not been initiated already,
+     * we delay the creation of the backend. */
+    if(isInitiated())
+      createBackend(backendCreator);
+    else
+      delayedBackend = backendCreator;
   }
   
   public void recordState(int context, int entity, int state, MonTimestamp timestamp) {
@@ -124,6 +123,23 @@ public abstract class SwitchableMon extends MonBackend {
       }
 
       unselect();      
+    }
+  }
+  
+  private void createBackend(SwitchableMonBackendCreator backendCreator) {
+    /* create the backend instance now */
+    try {
+      this.backend = backendCreator.create(recordOffset, infoOffset, byteOffset, getEndian());
+      
+      /* Tell subclasses about the newly created backend instance.
+       * This subclass implement behaviors to react to events that
+       * are triggered when no backend is currently selected. */
+      initSkip(backend);
+    } catch (MonException e) {
+      /* If something bad happened during the backend creation,
+       * tell the user and acts like if no backend was selected. */
+      backendError(e);
+      return;
     }
   }
   
