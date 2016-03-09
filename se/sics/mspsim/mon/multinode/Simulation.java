@@ -40,7 +40,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class Simulation extends Root implements Event {
-  private final double simTime; 
+  private final double simTime; /* simulation time in microseconds */
   
   public Simulation(double simTime) {
     this.simTime = simTime;
