@@ -40,8 +40,12 @@
  */
 package se.sics.mspsim.util;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import se.sics.mspsim.mon.MonTimestamp;
 
 public class Utils {
   private static final String str16 = "0000000000000000";
@@ -287,6 +291,27 @@ public class Utils {
 
   private static int reverseU16(int value) {
     return ((value << 8) | (value >> 8)) & 0xffff;
+  }
+  
+  /* We could probably use generics here. */
+  public static void writeBytes(OutputStream out, byte value, ByteOrder byteOrder) throws IOException {
+    out.write(value);
+  }
+  
+  public static void writeBytes(OutputStream out, short value, ByteOrder byteOrder) throws IOException {
+    out.write(Utils.toBytes(value, byteOrder));
+  }
+  
+  public static void writeBytes(OutputStream out, int value, ByteOrder byteOrder) throws IOException {
+    out.write(Utils.toBytes(value, byteOrder));
+  }
+  
+  public static void writeBytes(OutputStream out, double value, ByteOrder byteOrder) throws IOException {
+    out.write(Utils.toBytes(value, byteOrder));
+  }
+  
+  public static void writeBytes(OutputStream out, MonTimestamp nodeTime, ByteOrder byteOrder) throws IOException {
+    out.write(nodeTime.toBytes(byteOrder));
   }
   
 //  public static void main(String[] args) {

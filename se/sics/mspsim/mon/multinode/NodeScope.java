@@ -31,60 +31,39 @@
  *
  * -----------------------------------------------------------------
  *
- * Any events that happens is a Root event.
- * We use this special event during serialization so that 
- * we can distinguish events when parsing the monitor trace.
- * This is mandatory because we want to be able to parse 
- * traces with unknown events (forward compatibility). 
+ * This scope is for events that happen within a node.
  */
 
 package se.sics.mspsim.mon.multinode;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonTimestamp;
 import se.sics.mspsim.util.Utils;
 
-public class Root implements Event {  
-  /* We could probably use generics here. */
-  public static void writeBytes(OutputStream out, byte value) throws IOException {
-    out.write(value);
-  }
+public class NodeScope implements ScopeElement {
+  private final MonTimestamp nodeTime;
+  private final short nodeID;
   
-  public static void writeBytes(OutputStream out, short value) throws IOException {
-    out.write(Utils.toBytes(value, ByteOrder.BIG_ENDIAN));
+  public NodeScope(MonTimestamp nodeTime, short nodeID) {
+    this.nodeTime = nodeTime;
+    this.nodeID   = nodeID;
   }
-  
-  public static void writeBytes(OutputStream out, int value) throws IOException {
-    out.write(Utils.toBytes(value, ByteOrder.BIG_ENDIAN));
-  }
-  
-  public static void writeBytes(OutputStream out, double value) throws IOException {
-    out.write(Utils.toBytes(value, ByteOrder.BIG_ENDIAN));
-  }
-  
-  public static void writeBytes(OutputStream out, MonTimestamp nodeTime) throws IOException {
-    out.write(nodeTime.toBytes(ByteOrder.BIG_ENDIAN));
-  }
-  
-  /* Write type code and length headers. */
-  protected void writeHeader(OutputStream out, EventType type, int len) throws IOException {
-    short type_and_len = (short)(type.code << 1);
-    
-    if(len > 255)
-      type_and_len |= 1;
 
-    writeBytes(out, type_and_len);
-
-   if((type_and_len & 1) == 0)
-     writeBytes(out, (byte)len);
-   else
-     writeBytes(out, (int)len);
+  @Override
+  public void serialize(OutputStream out) throws IOException {
+    Utils.writeBytes(out, nodeTime, TraceFile.ENDIAN);
+    Utils.writeBytes(out, nodeID, TraceFile.ENDIAN);
   }
-  
-  public void write(OutputStream out) throws IOException {
-    out.write((byte)EventType.ROOT.code);
+
+  @Override
+  public ScopeElementType getType() {
+    return ScopeElementType.NODE;
+  }
+
+  @Override
+  public int getLength() {
+    return (MonTimestamp.SIZE + Short.SIZE) >> 3; 
   }
 }

@@ -31,25 +31,18 @@
  *
  * -----------------------------------------------------------------
  *
- * A data event from the monitor.
+ * List of scope elements types in a multinode monitor file along with their serialization code. 
  */
 
 package se.sics.mspsim.mon.multinode;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-import se.sics.mspsim.mon.MonTimestamp;
-
-public class NodeCreate extends Node implements Event {
-  public NodeCreate(double simTime, MonTimestamp nodeTime, short nodeID) {
-    super(simTime, nodeTime, nodeID);
-  }
+public enum ScopeElementType {
+  SIMULATION(1),    /* Events that happen within the simulation. */
+  NODE(2);           /* Events that happen within for a specific node. */
   
-  @Override
-  public void write(OutputStream out) throws IOException {
-    super.write(out);
-    
-    writeHeader(out, EventType.NODE_CREATE, 0);
+  public final short code;
+  
+  ScopeElementType(int code) {
+    this.code = (short)code;
   }
 }

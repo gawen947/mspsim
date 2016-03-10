@@ -31,61 +31,16 @@
  *
  * -----------------------------------------------------------------
  *
- * All events are created through this class.
- * An event is split into two parts. 
+ * A scope element defines the location (temporal, spatial, ...) of the event 
+ * within a context (such as simulation, single node, ...).
  * 
- * 1) A series of scopes that defines the time/location of the event within a certain context (node/simulation).
- * 2) The event itself.
- * 
- * When you create an event, you first give the event itself to the constructor.
- * Then you add multiple scopes to the event.
- * 
- * After that you pass the event to the trace file instance for writing.
+ * We use this specific interface to distinguish scope part from the event part in
+ * multinode event elements.
  */
 
 package se.sics.mspsim.mon.multinode;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-
-import se.sics.mspsim.util.Utils;
-
-public class Event implements MultinodeEventElement {
-  private final EventElement event;
-  private final ArrayList<ScopeElement> scopes = new ArrayList<ScopeElement>();
-
-  public Event(EventElement event) {
-    this.event = event;
-  }
-  
-  public void addScope(ScopeElement scope) {
-    this.scopes.add(scope);
-  }
-  
-  private void writeElementHeader(OutputStream out, short code, int len) throws IOException {
-    if(len > 255) {
-      Utils.writeBytes(out, (short)((code << 1) | 1), TraceFile.ENDIAN);
-      Utils.writeBytes(out, (int)len, TraceFile.ENDIAN);
-    } else {
-      Utils.writeBytes(out, (short)(code << 1), TraceFile.ENDIAN);
-      Utils.writeBytes(out, (byte)len, TraceFile.ENDIAN);
-    }
-  }
-  
-  @Override
-  public void serialize(OutputStream out) throws IOException {
-    /* write scope elements */
-    for(ScopeElement scope : scopes) {
-      writeElementHeader(out, scope.getType().code, scope.getLength());
-      scope.serialize(out);
-    }
-    
-    /* scopes/event separator */
-    out.write((byte)0);
-    
-    /* write event */
-    writeElementHeader(out, event.getType().code, event.getLength());
-    event.serialize(out);
-  }
+public interface ScopeElement extends MultinodeEventElement {
+  public ScopeElementType getType();
+  public int getLength();
 }

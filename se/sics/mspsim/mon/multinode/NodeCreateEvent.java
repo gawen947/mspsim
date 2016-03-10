@@ -31,66 +31,27 @@
  *
  * -----------------------------------------------------------------
  *
- * A trace records all events within a simulation consisting of multiple nodes.
+ * Creation of a node in the simulation.
  */
 
 package se.sics.mspsim.mon.multinode;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteOrder;
 
-import se.sics.mspsim.util.Utils;
+public class NodeCreateEvent implements EventElement {
+  @Override
+  public void serialize(OutputStream out) throws IOException {
+    /* Nothing to serialize, this is an empty event. */
+  }
 
-public class TraceFile {
-  /* 'ctktrace' */
-  public static final int MAGIK1 = 0x63746b74; /* 'ctkt' */
-  public static final int MAGIK2 = 0x72616365; /* 'race' */ 
-  
-  /* We have two versions for the file, MAJOR and MINOR.
-   * The file structure is incompatible between MAJOR versions,
-   * but forward compatible between MINOR versions. */
-  
-  /* Increment when new feature or changes hinder
-   * parsing (i.e. it is not possible to parse new
-   * traces with previous version of the parser). */ 
-  public static final int MAJOR_VERSION = 0;
-  
-  /* Increment when new features or changes do not
-   * hinder parsing (i.e. the previous version of
-   * the  parser can skip new features and changes). */
-  public static final int MINOR_VERSION  = 0;
-  
-  /* The endianness used for all fields. */
-  public static final ByteOrder ENDIAN = ByteOrder.BIG_ENDIAN;
-  
-  
-  private final OutputStream out;
-  
-  public TraceFile(String filePath) throws IOException {
-    out = new BufferedOutputStream(new FileOutputStream(filePath));
+  @Override
+  public EventElementType getType() {
+    return EventElementType.NODE_CREATE;
+  }
 
-    writeMagik();
-    writeVersion();
-  }
-  
-  public void write(Event event) throws IOException {
-    event.serialize(out);
-  }
-  
-  private void writeMagik() throws IOException {
-    out.write(Utils.toBytes(MAGIK1, ByteOrder.BIG_ENDIAN));
-    out.write(Utils.toBytes(MAGIK2, ByteOrder.BIG_ENDIAN));
-  }
-  
-  private void writeVersion() throws IOException {
-    out.write(Utils.toBytes(MAJOR_VERSION, ByteOrder.BIG_ENDIAN));
-    out.write(Utils.toBytes(MINOR_VERSION, ByteOrder.BIG_ENDIAN));
-  }
-  
-  public void destroy() throws IOException {
-    out.close();
+  @Override
+  public int getLength() {
+    return 0;
   }
 }

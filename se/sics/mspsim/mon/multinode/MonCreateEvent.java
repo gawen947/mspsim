@@ -31,33 +31,50 @@
  *
  * -----------------------------------------------------------------
  *
- * Events that happen within a single node.
+ * Initialization of the monitor within a node with offset and byte order.
  */
 
 package se.sics.mspsim.mon.multinode;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteOrder;
 
 import se.sics.mspsim.mon.MonTimestamp;
+import se.sics.mspsim.util.Utils;
 
-public class Node extends Simulation implements Event {
-  private final MonTimestamp nodeTime;
-  private final short         nodeID;
+public class MonCreateEvent implements EventElement {
+  MonTimestamp stateOffset;
+  MonTimestamp dataOffset;
+  MonTimestamp byteOffset;
+  ByteOrder byteOrder;
   
-  public Node(double simTime, MonTimestamp nodeTime, short nodeID) {
-    super(simTime);
+  public MonCreateEvent(MonTimestamp stateOffset, MonTimestamp dataOffset, MonTimestamp byteOffset, ByteOrder byteOrder) {
+    this.stateOffset = stateOffset;
+    this.dataOffset  = dataOffset;
+    this.byteOffset  = byteOffset;
+    this.byteOrder   = byteOrder;  
+  }
+  
+  @Override
+  public void serialize(OutputStream out) throws IOException {
+    Utils.writeBytes(out, stateOffset, TraceFile.ENDIAN);
+    Utils.writeBytes(out, dataOffset, TraceFile.ENDIAN);
+    Utils.writeBytes(out, byteOffset, TraceFile.ENDIAN);
     
-    this.nodeTime = nodeTime;
-    this.nodeID   = nodeID;
+    if(byteOrder == ByteOrder.BIG_ENDIAN)
+      out.write((byte)'B'); /* BE */
+    else
+      out.write((byte)'l'); /* le */
   }
 
   @Override
-  public void write(OutputStream out) throws IOException {
-    super.write(out);
-    
-    writeHeader(out, EventType.NODE, (MonTimestamp.SIZE + Short.SIZE) >> 3);
-    writeBytes(out, nodeTime);
-    writeBytes(out, nodeID);
+  public EventElementType getType() {
+    return EventElementType.MON_CREATE;
+  }
+
+  @Override
+  public int getLength() {
+    return (MonTimestamp.SIZE * 3 + Byte.SIZE) >> 3;
   }
 }

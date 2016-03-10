@@ -43,12 +43,19 @@ import java.nio.ByteOrder;
 import se.sics.mspsim.mon.MonException;
 import se.sics.mspsim.mon.MonTimestamp;
 import se.sics.mspsim.mon.multinode.Event;
-import se.sics.mspsim.mon.multinode.MonData;
-import se.sics.mspsim.mon.multinode.MonOffset;
-import se.sics.mspsim.mon.multinode.MonState;
+import se.sics.mspsim.mon.multinode.EventElement;
+import se.sics.mspsim.mon.multinode.MonCreateEvent;
+import se.sics.mspsim.mon.multinode.MonDataEvent;
+import se.sics.mspsim.mon.multinode.MonStateEvent;
+import se.sics.mspsim.mon.multinode.NodeScope;
+import se.sics.mspsim.mon.multinode.ScopeElement;
+import se.sics.mspsim.mon.multinode.SimulationScope;
 import se.sics.mspsim.mon.multinode.TraceFile;
 
 public class TraceMonBackend extends SwitchableMonBackend {
+  private static double DEFAULT_SIM_TIME = -1.; /* Default simulation time used in microseconds. */
+  private static short  DEFAULT_NODE_ID = 0;    /* Default node identifier used. */ 
+  
   /* Use an instance of this class to tell SwitchableMon how to create this backend. */
   static public class Creator implements SwitchableMonBackendCreator {
     private final String filePath;
@@ -73,9 +80,7 @@ public class TraceMonBackend extends SwitchableMonBackend {
     try {
       trace = new TraceFile(filePath);
       
-      MonTimestamp nullTime = new MonTimestamp(0, 0.);
-      Event ev = new MonOffset(0., nullTime, (short)0, recordOffset, infoOffset, byteOffset, byteOrder);
-      trace.write(ev);
+      writeEvent(new MonTimestamp(0, 0.), new MonCreateEvent(recordOffset, infoOffset, byteOffset, byteOrder));
     } catch (IOException e) {
       throw new MonException("cannot open/create '" + filePath + "'");
     }
@@ -85,9 +90,8 @@ public class TraceMonBackend extends SwitchableMonBackend {
   
   @Override
   public void recordState(int context, int entity, int state, MonTimestamp timestamp) throws MonException {
-    Event ev = new MonState(0., timestamp, (short)0, (short)context, (short)entity, (short)state);
     try {
-      trace.write(ev);
+      writeEvent(timestamp, new MonStateEvent(context, entity, state));
     } catch (IOException e) {
       throw new MonException("cannot write state event");
     }
@@ -95,9 +99,8 @@ public class TraceMonBackend extends SwitchableMonBackend {
 
   @Override
   public void recordInfo(int context, int entity, byte[] info, MonTimestamp timestamp) throws MonException {
-    Event ev = new MonData(0., timestamp, (short)0, (short)context, (short)entity, info);
     try {
-      trace.write(ev);
+      writeEvent(timestamp, new MonDataEvent(context, entity, info));
     } catch (IOException e) {
       throw new MonException("cannot write data event");
     }   
@@ -111,5 +114,19 @@ public class TraceMonBackend extends SwitchableMonBackend {
     } catch (IOException e) {
       throw new MonException("close error");
     } 
+  }
+  
+  private void writeEvent(MonTimestamp timestamp, EventElement eventElement) throws IOException {
+    Event event = new Event(eventElement);
+
+    ScopeElement[] scopes = {
+        new SimulationScope(TraceMonBackend.DEFAULT_SIM_TIME),
+        new NodeScope(timestamp, TraceMonBackend.DEFAULT_NODE_ID)
+    };
+    
+    for(ScopeElement scope : scopes)
+      event.addScope(scope);
+    
+    trace.write(event);
   }
 }

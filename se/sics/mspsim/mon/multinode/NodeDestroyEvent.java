@@ -31,26 +31,28 @@
  *
  * -----------------------------------------------------------------
  *
- * Events that happen within the simulation. 
+ * Removal of a node in the simulation.
  */
+
 
 package se.sics.mspsim.mon.multinode;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class Simulation extends Root implements Event {
-  private final double simTime; /* simulation time in microseconds */
-  
-  public Simulation(double simTime) {
-    this.simTime = simTime;
-  }
-  
+public class NodeDestroyEvent implements EventElement {
   @Override
-  public void write(OutputStream out) throws IOException {
-    super.write(out);
-    
-    writeHeader(out, EventType.SIMULATION, Double.SIZE >> 3);
-    writeBytes(out, simTime);
+  public void serialize(OutputStream out) throws IOException {
+    /* Nothing to serialize, this is an empty event. */
+  }
+
+  @Override
+  public EventElementType getType() {
+    return EventElementType.NODE_DESTROY;
+  }
+
+  @Override
+  public int getLength() {
+    return 0;
   }
 }

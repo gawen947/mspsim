@@ -31,7 +31,7 @@
  *
  * -----------------------------------------------------------------
  *
- * A data event from the monitor.
+ * All events elements depend on this interface for serialization.
  */
 
 package se.sics.mspsim.mon.multinode;
@@ -39,30 +39,6 @@ package se.sics.mspsim.mon.multinode;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import se.sics.mspsim.mon.MonTimestamp;
-
-public class MonData extends Node implements Event {
-  public final short context;
-  public final short entity;
-  public final byte[] data;
-  
-  public MonData(double simTime, MonTimestamp nodeTime, short nodeID,
-                  short context, short entity, byte[] data) {
-    super(simTime, nodeTime, nodeID);
-    
-    this.context = context;
-    this.entity  = entity;
-    this.data    = data;
-  }
-  
-  @Override
-  public void write(OutputStream out) throws IOException {
-    super.write(out);
-    
-    writeHeader(out, EventType.MON_DATA, (Short.SIZE * 2) >> 3 + data.length);
-    
-    writeBytes(out, context);
-    writeBytes(out, entity);
-    out.write(data);
-  }
+public interface MultinodeEventElement {
+  public void serialize(OutputStream out) throws IOException;
 }
