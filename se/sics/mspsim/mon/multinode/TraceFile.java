@@ -56,7 +56,7 @@ public class TraceFile {
   /* Increment when new feature or changes hinder
    * parsing (i.e. it is not possible to parse new
    * traces with previous version of the parser). */ 
-  public static final int MAJOR_VERSION = 0;
+  public static final int MAJOR_VERSION = 1;
   
   /* Increment when new features or changes do not
    * hinder parsing (i.e. the previous version of
