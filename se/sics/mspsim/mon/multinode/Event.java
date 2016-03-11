@@ -82,7 +82,7 @@ public class Event implements MultinodeEventElement {
     }
     
     /* scopes/event separator */
-    out.write((byte)0);
+    out.write((short)ScopeElementType.SEPARATOR.code);
     
     /* write event */
     writeElementHeader(out, event.getType().code, event.getLength());

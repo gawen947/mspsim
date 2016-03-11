@@ -37,8 +37,9 @@
 package se.sics.mspsim.mon.multinode;
 
 public enum ScopeElementType {
+  SEPARATOR(0),      /* Reserved to distinguish scopes/event in file format. */
   SIMULATION(1),    /* Events that happen within the simulation. */
-  NODE(2);           /* Events that happen within for a specific node. */
+  NODE(2);           /* Events that happen within a specific node. */
   
   public final short code;
   

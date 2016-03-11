@@ -39,24 +39,31 @@ package se.sics.mspsim.mon.multinode;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class NodePositionEvent implements EventElement {
+import se.sics.mspsim.util.Utils;
 
+public class NodePositionEvent implements EventElement {
+  private final double x, y, z;
+  
+  public NodePositionEvent(double x, double y, double z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+  
   @Override
   public void serialize(OutputStream out) throws IOException {
-    // TODO Auto-generated method stub
-
+    Utils.writeBytes(out,  x, TraceFile.ENDIAN);
+    Utils.writeBytes(out,  y, TraceFile.ENDIAN);
+    Utils.writeBytes(out,  z, TraceFile.ENDIAN);
   }
 
   @Override
   public EventElementType getType() {
-    // TODO Auto-generated method stub
-    return null;
+    return EventElementType.NODE_POSITION;
   }
 
   @Override
   public int getLength() {
-    // TODO Auto-generated method stub
-    return 0;
+    return (Double.SIZE * 3) >> 3;
   }
-
 }
