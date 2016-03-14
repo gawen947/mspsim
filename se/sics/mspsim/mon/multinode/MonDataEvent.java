@@ -66,6 +66,6 @@ public class MonDataEvent implements EventElement {
 
   @Override
   public int getLength() {
-    return (Short.SIZE * 2) >> 3 + data.length;
+    return ((Short.SIZE * 2) >> 3) + data.length;
   }
 }
