@@ -53,7 +53,6 @@ import se.sics.mspsim.mon.multinode.SimulationScope;
 import se.sics.mspsim.mon.multinode.TraceFile;
 
 public class TraceMonBackend extends SwitchableMonBackend {
-  private static double DEFAULT_SIM_TIME = -1.; /* Default simulation time used in microseconds. */
   private static short  DEFAULT_NODE_ID = 0;    /* Default node identifier used. */ 
   
   /* Use an instance of this class to tell SwitchableMon how to create this backend. */
@@ -118,15 +117,9 @@ public class TraceMonBackend extends SwitchableMonBackend {
   
   private void writeEvent(MonTimestamp timestamp, EventElement eventElement) throws IOException {
     Event event = new Event(eventElement);
+    
+    event.addScope(new NodeScope(timestamp, TraceMonBackend.DEFAULT_NODE_ID));
 
-    ScopeElement[] scopes = {
-        new SimulationScope(TraceMonBackend.DEFAULT_SIM_TIME),
-        new NodeScope(timestamp, TraceMonBackend.DEFAULT_NODE_ID)
-    };
-    
-    for(ScopeElement scope : scopes)
-      event.addScope(scope);
-    
     trace.write(event);
   }
 }
